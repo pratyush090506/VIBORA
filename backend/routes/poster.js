@@ -43,4 +43,17 @@ router.get('/my-posters', authMiddleware, async (req, res) => {
     }
 });
 
+router.delete('/:id', authMiddleware, async (req, res) => {
+  const poster = await Poster.findById(req.params.id);
+  if (!poster) return res.status(404).json({ msg: 'Not found' });
+  if (String(poster.CreatedBy) !== req.user.userId && req.user.role !== 'admin') {
+    return res.status(403).json({ msg: 'Forbidden' });
+  }
+  await poster.deleteOne();
+  res.json({ msg: 'Deleted' });
+});
+
+
+
+
 module.exports = router;

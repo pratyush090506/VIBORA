@@ -208,9 +208,9 @@ const Header = ({ isLoggedIn, user, navigateTo, handleLogout, cart }) => { // Ad
           onClick={() => navigateTo('landing')}
           className="text-3xl font-black tracking-tighter cursor-pointer"
         >
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-500 to-cyan-400">
-            VIBORA
-          </span>
+          <div className="flex items-center gap-4">
+            <img src="https://i.ibb.co/jP4FMcrR/vibora-white.png" alt="VIBORA logo" className="w-30 h-20" />
+          </div>
         </div>
 
         {/* Desktop Nav */}
@@ -244,7 +244,9 @@ const Footer = () => {
     <footer className="bg-gray-900 border-t border-gray-800 mt-20">
       <div className="container mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between">
         <div className="mb-8 md:mb-0">
-          <h3 className="text-2xl font-black tracking-tighter text-white">VIBORA</h3>
+          <div className="flex items-center gap-4">
+            <img src="https://i.ibb.co/jP4FMcrR/vibora-white.png" alt="VIBORA logo" className="w-30 h-24" />
+          </div>
           <p className="text-gray-400 mt-2">Your Walls, Your Story.</p>
         </div>
         <div className="flex flex-col md:flex-row items-center gap-8">
@@ -763,7 +765,7 @@ const DashboardPage = ({ user, handleAddToCart }) => { // Add handleAddToCart pr
                   <h3 className="text-xl font-serif font-bold text-white">{poster.title}</h3>
                   <div className="flex items-center justify-between mt-4">
                     <span className="text-2xl font-black text-cyan-400">
-                      ${poster.price}
+                      Rs. {poster.price}
                     </span>
                     {/* --- UPDATED BUTTON --- */}
                     <button
@@ -914,7 +916,7 @@ const CartPage = ({ cart, setCart, navigateTo }) => {
   };
 
   const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
-  const shipping = 5.00; // Fixed shipping
+  const shipping = 49.00; // Fixed shipping
   const total = subtotal + shipping;
 
   const handleCheckout = async () => {
@@ -996,7 +998,7 @@ const CartPage = ({ cart, setCart, navigateTo }) => {
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
-                    <span className="text-lg font-bold text-white">${item.price.toFixed(2)}</span>
+                    <span className="text-lg font-bold text-white">Rs. {item.price.toFixed(2)}</span>
                     <button
                       onClick={() => removeFromCart(item._id)}
                       className="text-gray-500 hover:text-red-400 transition-colors"
@@ -1016,16 +1018,16 @@ const CartPage = ({ cart, setCart, navigateTo }) => {
               {error && <ErrorMessage message={error} />}
               <div className="flex justify-between items-center text-gray-300 mb-4">
                 <span>Subtotal</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="font-medium">Rs. {subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-gray-300 mb-4">
                 <span>Shipping</span>
-                <span className="font-medium">${shipping.toFixed(2)}</span>
+                <span className="font-medium">Rs. {shipping.toFixed(2)}</span>
               </div>
               <div className="border-t border-gray-700 my-4"></div>
               <div className="flex justify-between items-center text-white text-xl font-bold mb-6">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>Rs. {total.toFixed(2)}</span>
               </div>
               <button
                 onClick={handleCheckout}
