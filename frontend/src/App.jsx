@@ -117,7 +117,7 @@ const HeroIllustration = () => (
  * Header Component
  * Handles navigation and mobile menu.
  */
-const Header = ({ isLoggedIn, user, navigateTo, handleLogout }) => {
+const Header = ({ isLoggedIn, user, navigateTo, handleLogout, cart }) => { // Add cart prop
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navLinks = isLoggedIn ? (
@@ -139,6 +139,21 @@ const Header = ({ isLoggedIn, user, navigateTo, handleLogout }) => {
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-200 hover:bg-gray-800 transition-colors"
       >
         <Archive size={18} /> My Orders
+      </button>
+      {/* --- NEW CART BUTTON --- */}
+      <button
+        onClick={() => {
+          navigateTo('cart');
+          setIsMobileMenuOpen(false);
+        }}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-200 hover:bg-gray-800 transition-colors relative"
+      >
+        <ShoppingCart size={18} /> Cart
+        {cart.length > 0 && (
+          <span className="absolute -top-2 -right-2 w-5 h-5 bg-fuchsia-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
+            {cart.length}
+          </span>
+        )}
       </button>
       <span className="px-4 py-2 text-cyan-400 hidden lg:block">
         |
@@ -599,8 +614,7 @@ const RegisterPage = ({ navigateTo }) => {
  * Dashboard Page Component
  * This is where users see posters.
  */
-const DashboardPage = ({ user }) => {
-  // Mock data for posters - will be replaced by API call
+const DashboardPage = ({ user, handleAddToCart }) => { // Add handleAddToCart prop
   const [posters, setPosters] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -613,14 +627,17 @@ const DashboardPage = ({ user }) => {
     { name: 'Car', icon: Palette, img: 'https://cdn11.bigcommerce.com/s-09ecd/images/stencil/1280x1280/products/1632/3671/ochoice_Vehicles1__85133.1708983688.png?c=2' },
     { name: 'Cricket', icon: Camera, img: 'https://img.freepik.com/premium-vector/stunning-vector-art-cricket-player-batting-style_1227880-100.jpg?semt=ais_hybrid&w=740&q=80' },
     { name: 'Custom Poster', icon: PenTool, img: 'https://theposterstore.in/static/assets/brands/customtps.webp?v=2' },
+
   ];
   
+
   // Mock data for community vibe wall
   const vibeWall = [
     { id: 1, alt: 'Student room with posters', img: 'https://i.ibb.co/Zz7Gvvj9/Whats-App-Image-2025-10-24-at-21-47-35.jpg' },
     { id: 2, alt: 'Close up of poster', img: 'https://i.ibb.co/Q7FY3Hxq/Whats-App-Image-2025-10-24-at-21-47-35-1.jpg' },
     { id: 3, alt: 'Desk setup with art', img: 'https://i.ibb.co/CKCKwRL1/Whats-App-Image-2025-10-24-at-21-47-36.jpg' },
     { id: 4, alt: 'Multiple posters on a wall', img: 'https://i.ibb.co/5hvmxZFL/Whats-App-Image-2025-10-24-at-21-47-02-1.jpg' },
+
   ];
 
   // Fetch posters from backend on component mount
@@ -629,18 +646,19 @@ const DashboardPage = ({ user }) => {
       setIsLoading(true);
       setError(null);
       try {
-        // TODO: Get token from localStorage
-        // const token = localStorage.getItem('viboraToken');
-        // if (!token) {
-        //   throw new Error('No auth token found');
-        // }
+        // --- REAL API CALL ---
+        // We assume your backend route is '/api/poster' and it returns all posters
+        const response = await fetch('/api/poster');
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.msg || 'Failed to fetch posters');
+        }
+        setPosters(data); // Assuming data is an array of posters
         
-        // TODO: Update this URL to match your backend poster route
-        // I'm assuming it's '/api/poster/all' or something similar
-        // For now, I'll use mock data.
-        
-        // --- MOCK DATA ---
-        const mockPosterData = [
+      } catch (err) {
+        setError(err.message);
+        // Fallback to mock data on error so the page isn't empty
+const mockPosterData = [
           { _id: 1, title: 'Peter Parker & Gwen Stacy', price: 19.99, imageUrl: 'https://i.ibb.co/nM2L0z4V/7.png' },
           { _id: 2, title: 'Batman Era', price: 24.99, imageUrl: 'https://i.ibb.co/PGL940t1/8.png' },
           { _id: 3, title: 'Inspired Van Gogh Collection', price: 29.99, imageUrl: 'https://i.ibb.co/KczSjc7T/Whats-App-Image-2025-10-24-at-22-12-35.jpg' },
@@ -650,25 +668,8 @@ const DashboardPage = ({ user }) => {
           { _id: 7, title: 'Porsche 911 GT3', price: 29.99, imageUrl: 'https://i.ibb.co/xqSZq6Yf/Funny-Financial-Meme-Instagram-Post-4.png' },
           { _id: 8, title: 'Retro Future', price: 22.99, imageUrl: 'https://i.ibb.co/DDXPWcbW/12.png' },
         ];
-        // --- END MOCK DATA ---
-
-        // --- REAL API CALL (example) ---
-        // const response = await fetch('/api/posters', {
-        //   headers: {
-        //     'Authorization': `Bearer ${token}`
-        //   }
-        // });
-        // const data = await response.json();
-        // if (!response.ok) {
-        //   throw new Error(data.msg || 'Failed to fetch posters');
-        // }
-        // setPosters(data); // Assuming data is an array of posters
-        
-        // Using mock data for now
         setPosters(mockPosterData);
 
-      } catch (err) {
-        setError(err.message);
       } finally {
         setIsLoading(false);
       }
@@ -744,7 +745,7 @@ const DashboardPage = ({ user }) => {
           </div>
         )}
         {error && <ErrorMessage message={error} />}
-        {!isLoading && !error && (
+        {!isLoading && !error && posters.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {posters.map((poster) => (
               <div
@@ -753,9 +754,11 @@ const DashboardPage = ({ user }) => {
               >
                 <div className="w-full h-80 overflow-hidden">
                   <img
-                    src={poster.imageUrl} // Use imageUrl from (mock) API
+                    src={poster.imageURL} // Use imageUrl from API
                     alt={poster.title}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    // Add a fallback for broken images
+                    onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/400x600/111827/718096?text=Image+Missing' }}
                   />
                 </div>
                 <div className="p-5">
@@ -764,13 +767,23 @@ const DashboardPage = ({ user }) => {
                     <span className="text-2xl font-black text-cyan-400">
                       ${poster.price}
                     </span>
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-fuchsia-600 text-white text-sm font-medium shadow-lg hover:bg-fuchsia-700 transition-all transform hover:scale-105">
+                    {/* --- UPDATED BUTTON --- */}
+                    <button
+                      onClick={() => handleAddToCart(poster)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-fuchsia-600 text-white text-sm font-medium shadow-lg hover:bg-fuchsia-700 transition-all transform hover:scale-105"
+                    >
                       <ShoppingCart size={16} /> Add
                     </button>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        {!isLoading && !error && posters.length === 0 && (
+          <div className="text-center text-gray-400 bg-gray-900 p-8 rounded-lg border border-gray-800">
+            <h3 className="text-2xl font-serif font-bold text-white mb-2">No Posters Found</h3>
+            <p>We couldn't find any posters. Please check back later!</p>
           </div>
         )}
       </section>
@@ -783,7 +796,6 @@ const DashboardPage = ({ user }) => {
  * Orders Page Component
  */
 const OrdersPage = () => {
-  // Mock data for orders - will be replaced by API call
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -794,38 +806,24 @@ const OrdersPage = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // TODO: Get token from localStorage
         const token = localStorage.getItem('viboraToken');
         if (!token) {
           throw new Error('No auth token found. Please log in.');
         }
 
-        // TODO: Update this URL to match your backend order route
-        // I'm assuming it's '/api/orders/my-orders' or similar
+        // --- REAL API CALL ---
+        // This route now exists in your backend
+        const response = await fetch('/api/orders', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.msg || 'Failed to fetch orders');
+        }
+        setOrders(data); // Assuming data is an array of orders
         
-        // --- MOCK DATA ---
-        const mockOrderData = [
-          { _id: 'VBR-1003', createdAt: '2025-10-20T10:00:00Z', status: 'Shipped', total: 44.98 },
-          { _id: 'VBR-1002', createdAt: '2025-10-15T14:30:00Z', status: 'Processing', total: 19.99 },
-          { _id: 'VBR-1001', createdAt: '2025-09-28T09:15:00Z', status: 'Delivered', total: 52.97 },
-        ];
-        // --- END MOCK DATA ---
-        
-        // --- REAL API CALL (example) ---
-        // const response = await fetch('/api/orders/my-orders', {
-        //   headers: {
-        //     'Authorization': `Bearer ${token}`
-        //   }
-        // });
-        // const data = await response.json();
-        // if (!response.ok) {
-        //   throw new Error(data.msg || 'Failed to fetch orders');
-        // }
-        // setOrders(data); // Assuming data is an array of orders
-        
-        // Using mock data for now
-        setOrders(mockOrderData);
-
       } catch (err) {
         setError(err.message);
       } finally {
@@ -864,7 +862,7 @@ const OrdersPage = () => {
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                   <div>
                     <h3 className="text-lg font-serif font-bold text-white">
-                      Order <span className="text-cyan-400">#{order._id}</span>
+                      Order <span className="text-cyan-400">#{order._id.slice(-6)}</span>
                     </h3>
                     <p className="text-sm text-gray-400 mt-1">
                       Placed on {new Date(order.createdAt).toLocaleDateString()}
@@ -888,7 +886,7 @@ const OrdersPage = () => {
                     <div className="text-right">
                       <p className="text-sm text-gray-500">Total</p>
                       <span className="text-lg font-bold text-white">
-                        ${order.total}
+                        ${order.total.toFixed(2)}
                       </span>
                     </div>
                     <button className="px-4 py-2 rounded-lg bg-gray-700 text-white text-sm font-medium hover:bg-gray-600 transition-colors">
@@ -907,14 +905,159 @@ const OrdersPage = () => {
 
 
 /**
+ * --- UPDATED --- Cart Page Component
+ */
+const CartPage = ({ cart, setCart, navigateTo }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  const removeFromCart = (posterId) => {
+    setCart((prevCart) => prevCart.filter(item => item._id !== posterId));
+  };
+
+  const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
+  const shipping = 5.00; // Fixed shipping
+  const total = subtotal + shipping;
+
+  const handleCheckout = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('viboraToken');
+      if (!token) {
+        throw new Error('You must be logged in to check out.');
+      }
+
+      // Format cart items for the backend
+      const orderItems = cart.map(item => ({
+        title: item.title,
+        price: item.price,
+        imageUrl: item.imageUrl,
+        // _id: item._id (You can send this too if your backend needs the product ID)
+      }));
+
+      const payload = {
+        items: orderItems,
+        total: total,
+      };
+
+      // --- REAL API CALL TO CREATE ORDER ---
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.msg || 'Failed to create order');
+      }
+
+      // Success!
+      setCart([]); // Clear the cart
+      navigateTo('orders'); // Go to orders page to see the new order
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-6 py-12 text-gray-200">
+      <h1 className="text-4xl font-serif font-bold text-white mb-8">Your Cart</h1>
+      {cart.length === 0 ? (
+        <div className="text-center text-gray-400 bg-gray-900 p-8 rounded-lg border border-gray-800">
+          <h3 className="text-2xl font-serif font-bold text-white mb-2">Your Cart is Empty</h3>
+          <p className="mb-6">Looks like you haven't added any vibes yet.</p>
+          <button
+            onClick={() => navigateTo('dashboard')}
+            className="group flex items-center justify-center gap-2 mx-auto px-6 py-3 rounded-lg bg-fuchsia-600 text-white text-base font-semibold shadow-lg transition-all duration-300 transform hover:scale-105 hover:bg-fuchsia-500"
+          >
+            Browse Posters <ArrowRight size={18} />
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Cart Items */}
+          <div className="md:col-span-2 bg-gray-900 rounded-xl shadow-xl border border-gray-800 overflow-hidden">
+            <ul className="divide-y divide-gray-800">
+              {cart.map((item) => (
+                <li key={item._id} className="p-6 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <img src={item.imageUrl} alt={item.title} className="w-20 h-28 object-cover rounded-md" />
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-white">{item.title}</h3>
+                      <p className="text-sm text-gray-400">Poster</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <span className="text-lg font-bold text-white">${item.price.toFixed(2)}</span>
+                    <button
+                      onClick={() => removeFromCart(item._id)}
+                      className="text-gray-500 hover:text-red-400 transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Order Summary */}
+          <div className="md:col-span-1">
+            <div className="bg-gray-900 rounded-xl shadow-xl border border-gray-800 p-6 sticky top-28">
+              <h2 className="text-2xl font-serif font-bold text-white mb-6">Order Summary</h2>
+              {error && <ErrorMessage message={error} />}
+              <div className="flex justify-between items-center text-gray-300 mb-4">
+                <span>Subtotal</span>
+                <span className="font-medium">${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center text-gray-300 mb-4">
+                <span>Shipping</span>
+                <span className="font-medium">${shipping.toFixed(2)}</span>
+              </div>
+              <div className="border-t border-gray-700 my-4"></div>
+              <div className="flex justify-between items-center text-white text-xl font-bold mb-6">
+                <span>Total</span>
+                <span>${total.toFixed(2)}</span>
+              </div>
+              <button
+                onClick={handleCheckout}
+                disabled={isLoading}
+                className="w-full py-3 rounded-lg bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white font-semibold shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 disabled:bg-fuchsia-800 disabled:cursor-not-allowed"
+              >
+                {isLoading ? <LoadingSpinner /> : 'Proceed to Checkout'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+/**
  * Main App Component
  * This is the root of your application.
  */
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('landing'); // 'landing', 'login', 'register', 'dashboard', 'orders'
+  const [currentPage, setCurrentPage] = useState('landing'); // 'landing', 'login', 'register', 'dashboard', 'orders', 'cart'
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null); // Stores user info like { name, email }
   const [authLoading, setAuthLoading] = useState(true); // For initial token check
+  // --- CART PERSISTENCE ---
+  // Initialize cart from localStorage or as an empty array
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem('viboraCart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
 
   // --- Check for existing token on app load ---
   useEffect(() => {
@@ -955,6 +1098,12 @@ export default function App() {
     checkAuthStatus();
   }, []); // Empty dependency array = runs once on app load
 
+  // --- CART PERSISTENCE ---
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('viboraCart', JSON.stringify(cart));
+  }, [cart]);
+
 
   // --- Navigation Functions ---
   
@@ -975,9 +1124,27 @@ export default function App() {
   // Call this when user logs out
   const handleLogout = () => {
     localStorage.removeItem('viboraToken');
-    setUser(null);
-    setIsLoggedIn(false);
+    localStorage.removeItem('viboraCart'); // Clear cart from storage
+    setCart([]); // Clear cart state
     navigateTo('landing');
+  };
+
+  // --- Add to Cart Function ---
+  const handleAddToCart = (posterToAdd) => {
+    setCart((prevCart) => {
+      // Check if item is already in cart
+      const isAlreadyInCart = prevCart.find(item => item._id === posterToAdd._id);
+      if (isAlreadyInCart) {
+        // Here you could increase quantity, but for now we'll just prevent duplicates
+        console.log('Item already in cart');
+        // TODO: Add a user-facing message (toast notification)
+        return prevCart; 
+      }
+      // Add new item
+      return [...prevCart, posterToAdd];
+    });
+    // TODO: Add a user-facing message (toast notification)
+    console.log('Added to cart:', posterToAdd.title);
   };
 
   // --- Page Rendering Logic ---
@@ -997,9 +1164,11 @@ export default function App() {
       case 'register':
         return <RegisterPage navigateTo={navigateTo} />;
       case 'dashboard':
-        return isLoggedIn ? <DashboardPage user={user} /> : <LandingPage navigateTo={navigateTo} />;
+        return isLoggedIn ? <DashboardPage user={user} handleAddToCart={handleAddToCart} /> : <LandingPage navigateTo={navigateTo} />;
       case 'orders':
         return isLoggedIn ? <OrdersPage /> : <LandingPage navigateTo={navigateTo} />;
+      case 'cart':
+        return isLoggedIn ? <CartPage cart={cart} setCart={setCart} navigateTo={navigateTo} /> : <LandingPage navigateTo={navigateTo} />;
       case 'landing':
       default:
         return <LandingPage navigateTo={navigateTo} />;
@@ -1013,6 +1182,7 @@ export default function App() {
         user={user}
         navigateTo={navigateTo}
         handleLogout={handleLogout}
+        cart={cart} // Pass cart to header
       />
       <main className="flex-grow">
         {renderPage()}
@@ -1021,4 +1191,6 @@ export default function App() {
     </div>
   );
 }
+
+
 
