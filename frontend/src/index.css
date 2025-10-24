@@ -1,0 +1,20 @@
+/* Import Tailwind's base styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add your custom base styles here */
+body {
+  font-family: 'Inter', sans-serif; /* Tailwind's default font */
+}
+
+/* Fix for selection color */
+::selection {
+  background-color: #d946ef; /* fuchsia-500 */
+  color: #ffffff;
+}
+
+/* Simple animation delay utility (Tailwind doesn't have this by default) */
+.animation-delay-4000 {
+  animation-delay: 4000ms;
+}
