@@ -30,6 +30,12 @@ import {
   Camera,
 } from 'lucide-react';
 
+// --- Deployment Config ---
+// This will use your VITE_API_BASE_URL in production (Netlify)
+// and fall back to an empty string for local development (proxy)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+
 // --- Helper Components ---
 
 /**
@@ -380,7 +386,7 @@ const LoginPage = ({ navigateTo, handleLogin }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -495,7 +501,7 @@ const RegisterPage = ({ navigateTo }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
@@ -647,8 +653,7 @@ const DashboardPage = ({ user, handleAddToCart }) => { // Add handleAddToCart pr
       setError(null);
       try {
         // --- REAL API CALL ---
-        // We assume your backend route is '/api/poster' and it returns all posters
-        const response = await fetch('/api/poster');
+        const response = await fetch(`${API_BASE_URL}/api/poster`);
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.msg || 'Failed to fetch posters');
@@ -658,15 +663,8 @@ const DashboardPage = ({ user, handleAddToCart }) => { // Add handleAddToCart pr
       } catch (err) {
         setError(err.message);
         // Fallback to mock data on error so the page isn't empty
-const mockPosterData = [
-          { _id: 1, title: 'Peter Parker & Gwen Stacy', price: 19.99, imageUrl: 'https://i.ibb.co/nM2L0z4V/7.png' },
-          { _id: 2, title: 'Batman Era', price: 24.99, imageUrl: 'https://i.ibb.co/PGL940t1/8.png' },
-          { _id: 3, title: 'Inspired Van Gogh Collection', price: 29.99, imageUrl: 'https://i.ibb.co/KczSjc7T/Whats-App-Image-2025-10-24-at-22-12-35.jpg' },
-          { _id: 4, title: 'Midnight Vibe', price: 19.99, imageUrl: 'https://i.ibb.co/9kd5Q6xs/11.png' },
-          { _id: 5, title: 'Student Mood', price: 17.99, imageUrl: 'https://i.ibb.co/jZ9TtsCv/9.png' },
-          { _id: 6, title: 'Great Power', price: 29.99, imageUrl: 'https://i.ibb.co/gZbjyycY/with-great-power.png' },
-          { _id: 7, title: 'Porsche 911 GT3', price: 29.99, imageUrl: 'https://i.ibb.co/xqSZq6Yf/Funny-Financial-Meme-Instagram-Post-4.png' },
-          { _id: 8, title: 'Retro Future', price: 22.99, imageUrl: 'https://i.ibb.co/DDXPWcbW/12.png' },
+        const mockPosterData = [
+          { _id: 2, title: 'City of Dreams (Error)', price: 24.99, imageURL: 'https://placehold.co/400x600/111827/4299E1?text=ART+02' },
         ];
         setPosters(mockPosterData);
 
@@ -754,7 +752,7 @@ const mockPosterData = [
               >
                 <div className="w-full h-80 overflow-hidden">
                   <img
-                    src={poster.imageURL} // Use imageUrl from API
+                    src={poster.imageURL} // Use imageURL (capital U) from API
                     alt={poster.title}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     // Add a fallback for broken images
@@ -813,7 +811,7 @@ const OrdersPage = () => {
 
         // --- REAL API CALL ---
         // This route now exists in your backend
-        const response = await fetch('/api/orders', {
+        const response = await fetch(`${API_BASE_URL}/api/orders`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -932,8 +930,7 @@ const CartPage = ({ cart, setCart, navigateTo }) => {
       const orderItems = cart.map(item => ({
         title: item.title,
         price: item.price,
-        imageUrl: item.imageUrl,
-        // _id: item._id (You can send this too if your backend needs the product ID)
+        imageUrl: item.imageURL, // Use imageURL (capital U)
       }));
 
       const payload = {
@@ -942,7 +939,7 @@ const CartPage = ({ cart, setCart, navigateTo }) => {
       };
 
       // --- REAL API CALL TO CREATE ORDER ---
-      const response = await fetch('/api/orders', {
+      const response = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -989,7 +986,10 @@ const CartPage = ({ cart, setCart, navigateTo }) => {
               {cart.map((item) => (
                 <li key={item._id} className="p-6 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <img src={item.imageUrl} alt={item.title} className="w-20 h-28 object-cover rounded-md" />
+                    <img src={item.imageURL} // Use imageURL (capital U)
+                         alt={item.title}
+                         className="w-20 h-28 object-cover rounded-md"
+                         onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/80x112/111827/718096?text=X' }}/>
                     <div>
                       <h3 className="text-lg font-serif font-bold text-white">{item.title}</h3>
                       <p className="text-sm text-gray-400">Poster</p>
@@ -1070,7 +1070,7 @@ export default function App() {
 
       try {
         // Token exists, let's verify it with the backend /me route
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -1140,8 +1140,9 @@ export default function App() {
         // TODO: Add a user-facing message (toast notification)
         return prevCart; 
       }
-      // Add new item
-      return [...prevCart, posterToAdd];
+      // Add new item (Make sure to include imageURL)
+      const newItem = { ...posterToAdd, imageURL: posterToAdd.imageURL }; // Ensure imageURL is passed
+      return [...prevCart, newItem];
     });
     // TODO: Add a user-facing message (toast notification)
     console.log('Added to cart:', posterToAdd.title);
@@ -1191,6 +1192,4 @@ export default function App() {
     </div>
   );
 }
-
-
 
